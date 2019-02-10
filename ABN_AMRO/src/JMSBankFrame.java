@@ -4,7 +4,12 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Properties;
 
+import javax.jms.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -18,6 +23,8 @@ import javax.swing.border.EmptyBorder;
 import mix.messaging.requestreply.RequestReply;
 import mix.model.bank.BankInterestReply;
 import mix.model.bank.BankInterestRequest;
+import mix.model.loan.LoanRequest;
+import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class JMSBankFrame extends JFrame {
 
@@ -27,22 +34,77 @@ public class JMSBankFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTextField tfReply;
-	private DefaultListModel<RequestReply<BankInterestRequest, BankInterestReply>> listModel = new DefaultListModel<RequestReply<BankInterestRequest, BankInterestReply>>();
-	
+	private static DefaultListModel<RequestReply<BankInterestRequest, BankInterestReply>> listModel = new DefaultListModel<RequestReply<BankInterestRequest, BankInterestReply>>();
+
+	private static Connection connection;
+	private static Session session;
+	private static Destination receiverDestination;
+	private static Destination senderDestination;
+	private static MessageProducer producer;
+	private static MessageConsumer consumer;
+
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
+		EventQueue.invokeLater(() -> {
+            try {
+                JMSBankFrame frame = new JMSBankFrame();
+                frame.setVisible(true);
+                subscribe();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+	}
+
+	public static void subscribe(){
+		try {
+			Properties props = new Properties();
+			props.setProperty(Context.INITIAL_CONTEXT_FACTORY,
+					"org.apache.activemq.jndi.ActiveMQInitialContextFactory");
+			props.setProperty(Context.PROVIDER_URL, "tcp://localhost:61616");
+
+			// connect to the Destination called “myFirstChannel”
+			// queue or topic: “queue.myFirstDestination” or “topic.myFirstDestination”
+			props.put(("queue.BankInterestRequests"), " BankInterestRequests");
+
+			Context jndiContext = new InitialContext(props);
+			ActiveMQConnectionFactory connectionFactory = (ActiveMQConnectionFactory) jndiContext
+					.lookup("ConnectionFactory");
+			connectionFactory.setTrustAllPackages(true);
+			connection = connectionFactory.createConnection();
+			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+			// connect to the receiver destination
+			receiverDestination = (Destination) jndiContext.lookup("BankInterestRequests");
+			consumer = session.createConsumer(receiverDestination);
+
+			connection.start(); // this is needed to start receiving messages
+
+		} catch (NamingException | JMSException e) {
+			e.printStackTrace();
+		}
+
+
+		try {
+			consumer.setMessageListener(msg -> {
 				try {
-					JMSBankFrame frame = new JMSBankFrame();
-					frame.setVisible(true);
-				} catch (Exception e) {
+					Object obj = ((ObjectMessage) msg).getObject();
+					BankInterestRequest request = (BankInterestRequest) obj;
+					listModel.addElement(new RequestReply<>(request, null));
+
+				} catch (JMSException e) {
 					e.printStackTrace();
 				}
-			}
-		});
+
+            });
+
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+
+
 	}
 
 	/**
@@ -93,18 +155,44 @@ public class JMSBankFrame extends JFrame {
 		tfReply.setColumns(10);
 		
 		JButton btnSendReply = new JButton("send reply");
-		btnSendReply.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				RequestReply<BankInterestRequest, BankInterestReply> rr = list.getSelectedValue();
-				double interest = Double.parseDouble((tfReply.getText()));
-				BankInterestReply reply = new BankInterestReply(interest,"ABN AMRO");
-				if (rr!= null && reply != null){
-					rr.setReply(reply);
-	                list.repaint();
-					// todo: sent JMS message with the reply to Loan Broker
-				}
-			}
-		});
+		btnSendReply.addActionListener(e -> {
+            RequestReply<BankInterestRequest, BankInterestReply> rr = list.getSelectedValue();
+            double interest = Double.parseDouble((tfReply.getText()));
+            BankInterestReply reply = new BankInterestReply(interest,"ABN AMRO");
+            if (rr!= null && reply != null){
+                rr.setReply(reply);
+                list.repaint();
+                try{
+                    Properties props = new Properties();
+                    props.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
+                    props.setProperty(Context.PROVIDER_URL, "tcp://localhost:61616");
+
+                    // connect to the Destination called “myFirstChannel”
+                    // queue or topic: “queue.myFirstDestination” or “topic.myFirstDestination”
+                    props.put(("queue.BankInterestReplies"), "BankInterestReplies");
+
+                    Context jndiContext = new InitialContext(props);
+                    ConnectionFactory connectionFactory = (ConnectionFactory) jndiContext
+                            .lookup("ConnectionFactory");
+                    connection = connectionFactory.createConnection();
+                    session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+                    // connect to the sender destination
+                    senderDestination = (Destination) jndiContext.lookup("BankInterestReplies");
+                    producer = session.createProducer(senderDestination);
+
+                    // create a text message
+                    Message newMessage = session.createObjectMessage(reply);
+                    newMessage.setIntProperty("requestId", rr.getRequest().hashCode());
+                    // send the message
+                    producer.send(newMessage);
+                } catch (NamingException e1) {
+                    e1.printStackTrace();
+                } catch (JMSException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
 		GridBagConstraints gbc_btnSendReply = new GridBagConstraints();
 		gbc_btnSendReply.anchor = GridBagConstraints.NORTHWEST;
 		gbc_btnSendReply.gridx = 4;
