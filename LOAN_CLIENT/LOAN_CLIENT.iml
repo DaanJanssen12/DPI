@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="apache-activemq-5.15" level="project" />
+    <orderEntry type="library" name="genson-1.4" level="project" />
   </component>
 </module>

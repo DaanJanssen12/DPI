@@ -25,17 +25,19 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import loanclient.messaging.LoanBrokerAppGateway;
+import loanclient.messaging.LoanSerializer;
 import mix.messaging.requestreply.RequestReply;
-import mix.model.bank.BankInterestRequest;
 import mix.model.loan.LoanReply;
 import mix.model.loan.LoanRequest;
-import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class LoanClientFrame extends JFrame {
 
 	/**
 	 * 
 	 */
+	private static LoanBrokerAppGateway loanBrokerAppGateway;
+
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTextField tfSSN;
@@ -46,13 +48,6 @@ public class LoanClientFrame extends JFrame {
 	private JLabel lblNewLabel;
 	private JLabel lblNewLabel_1;
 	private JTextField tfTime;
-
-	private static Connection connection;
-	private static Session session;
-	private static MessageProducer producer;
-	private static Destination receiverDestination;
-	private static Destination senderDestination;
-	private static MessageConsumer consumer;
 
 	/**
 	 * Create the frame.
@@ -124,46 +119,15 @@ public class LoanClientFrame extends JFrame {
 		tfTime.setColumns(10);
 		
 		JButton btnQueue = new JButton("send loan request");
-		btnQueue.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				int ssn = Integer.parseInt(tfSSN.getText());
-				int amount = Integer.parseInt(tfAmount.getText());
-				int time = Integer.parseInt(tfTime.getText());				
-				
-				LoanRequest request = new LoanRequest(ssn,amount,time);
-				listModel.addElement(new RequestReply<>(request, null));
-				// to do:  send the JMS with request to Loan Broker
-				try {
-					Properties props = new Properties();
-					props.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
-					props.setProperty(Context.PROVIDER_URL, "tcp://localhost:61616");
+		btnQueue.addActionListener(arg0 -> {
+            int ssn = Integer.parseInt(tfSSN.getText());
+            int amount = Integer.parseInt(tfAmount.getText());
+            int time = Integer.parseInt(tfTime.getText());
 
-					// connect to the Destination called “myFirstChannel”
-					// queue or topic: “queue.myFirstDestination” or “topic.myFirstDestination”
-					props.put(("queue.LoanRequests"), "LoanRequests");
-
-					Context jndiContext = new InitialContext(props);
-					ConnectionFactory connectionFactory = (ConnectionFactory) jndiContext
-							.lookup("ConnectionFactory");
-					connection = connectionFactory.createConnection();
-					session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-					// connect to the sender destination
-					senderDestination = (Destination) jndiContext.lookup("LoanRequests");
-					producer = session.createProducer(senderDestination);
-
-					// create a text message
-					Message msg = session.createObjectMessage(request);
-					msg.setJMSMessageID(""+request.hashCode());
-					// send the message
-					producer.send(msg);
-
-				} catch (NamingException | JMSException e) {
-					e.printStackTrace();
-				}
-
-			}
-		});
+            LoanRequest request = new LoanRequest(ssn,amount,time);
+            listModel.addElement(new RequestReply<>(request, null));
+            loanBrokerAppGateway.applyForLoan(request);
+        });
 		GridBagConstraints gbc_btnQueue = new GridBagConstraints();
 		gbc_btnQueue.insets = new Insets(0, 0, 5, 5);
 		gbc_btnQueue.gridx = 2;
@@ -179,7 +143,7 @@ public class LoanClientFrame extends JFrame {
 		gbc_scrollPane.gridy = 4;
 		contentPane.add(scrollPane, gbc_scrollPane);
 		
-		requestReplyList = new JList<RequestReply<LoanRequest,LoanReply>>(listModel);
+		requestReplyList = new JList<>(listModel);
 		scrollPane.setViewportView(requestReplyList);	
        
 	}
@@ -190,7 +154,7 @@ public class LoanClientFrame extends JFrame {
 	 * @param request
 	 * @return
 	 */
-   private RequestReply<LoanRequest,LoanReply> getRequestReply(LoanRequest request){    
+   private static RequestReply<LoanRequest,LoanReply> getRequestReply(LoanRequest request){
      
      for (int i = 0; i < listModel.getSize(); i++){
     	 RequestReply<LoanRequest,LoanReply> rr =listModel.get(i);
@@ -203,72 +167,36 @@ public class LoanClientFrame extends JFrame {
    }
 	
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					LoanClientFrame frame = new LoanClientFrame();
-					subscribe();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		EventQueue.invokeLater(() -> {
+            try {
+				subscribe("LoanRequests", "LoanReplies");
+                LoanClientFrame frame = new LoanClientFrame();
+                frame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 	}
 
-	private static void subscribe(){
-		try {
-			Properties props = new Properties();
-			props.setProperty(Context.INITIAL_CONTEXT_FACTORY,
-					"org.apache.activemq.jndi.ActiveMQInitialContextFactory");
-			props.setProperty(Context.PROVIDER_URL, "tcp://localhost:61616");
+	private static void subscribe(String senderChannel, String receiverChannel){
+		loanBrokerAppGateway = new LoanBrokerAppGateway(senderChannel, receiverChannel);
+		loanBrokerAppGateway.setMessageListener(msg -> {
+            try {
+                LoanReply reply = new LoanSerializer().replyFromString(msg.toString());
+                for (int i = 0; i < listModel.getSize(); i++){
+                    RequestReply<LoanRequest,LoanReply> rr =listModel.get(i);
+                    if (rr.getRequest().hashCode() == msg.getIntProperty("loanRequestId")){
+                        rr.setReply(reply);
+                    }
+                }
+                requestReplyList.repaint();
 
-			// connect to the Destination called “myFirstChannel”
-			// queue or topic: “queue.myFirstDestination” or “topic.myFirstDestination”
-			props.put(("queue.LoanReplies"), " LoanReplies");
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
 
-			Context jndiContext = new InitialContext(props);
-			ActiveMQConnectionFactory connectionFactory = (ActiveMQConnectionFactory) jndiContext
-					.lookup("ConnectionFactory");
-			connectionFactory.setTrustAllPackages(true);
-			connection = connectionFactory.createConnection();
-			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-			// connect to the receiver destination
-			receiverDestination = (Destination) jndiContext.lookup("LoanReplies");
-			consumer = session.createConsumer(receiverDestination);
-
-			connection.start(); // this is needed to start receiving messages
-
-		} catch (NamingException | JMSException e) {
-			e.printStackTrace();
-		}
+        });
 
 
-		try {
-			consumer.setMessageListener(msg -> {
-				try {
-					Object obj = ((ObjectMessage) msg).getObject();
-					LoanReply reply = (LoanReply) obj;
-
-					for (int i = 0; i < listModel.getSize(); i++){
-						RequestReply<LoanRequest,LoanReply> rr =listModel.get(i);
-						if (rr.getRequest().hashCode() == msg.getIntProperty("loanRequestId")){
-							rr.setReply(reply);
-						}
-					}
-					requestReplyList.repaint();
-
-				} catch (JMSException e) {
-					e.printStackTrace();
-				}
-
-			});
-
-
-
-		} catch (JMSException e) {
-			e.printStackTrace();
-		}
 	}
 }
