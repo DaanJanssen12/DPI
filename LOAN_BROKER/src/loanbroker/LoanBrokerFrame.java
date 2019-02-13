@@ -1,5 +1,6 @@
 package loanbroker;
 
+import jdk.nashorn.internal.ir.ExpressionStatement;
 import loanbroker.messaging.Bank.BankAppGateway;
 import loanbroker.messaging.Bank.BankSerializer;
 import loanbroker.messaging.LoanClient.LoanClientAppGateway;
@@ -71,13 +72,15 @@ public class LoanBrokerFrame extends JFrame {
 			try {
 				String body = ((TextMessage)msg).getText();
 				BankInterestReply reply = new BankSerializer().replyFromString(body);
+
 				for (int i = 0; i < listModel.size(); i++) {
 					JListLine listLine = listModel.get(i);
-					if(listLine.getBankRequest().hashCode() == msg.getIntProperty("requestId")){
+					if(listLine.getBankReply() == null){
 						listLine.setBankReply(reply);
 						LoanReply loanReply = new LoanReply(reply.getInterest(), reply.getQuoteId());
 
 						loanClientAppGateway.sendLoanReply(loanReply);
+						break;
 					}
 				}
 				list.repaint();

@@ -181,20 +181,21 @@ public class LoanClientFrame extends JFrame {
 	private static void subscribe(String senderChannel, String receiverChannel){
 		loanBrokerAppGateway = new LoanBrokerAppGateway(senderChannel, receiverChannel);
 		loanBrokerAppGateway.setMessageListener(msg -> {
+            String body = null;
             try {
-                LoanReply reply = new LoanSerializer().replyFromString(msg.toString());
+                body = ((TextMessage)msg).getText();
+                LoanReply reply = new LoanSerializer().replyFromString(body);
                 for (int i = 0; i < listModel.getSize(); i++){
                     RequestReply<LoanRequest,LoanReply> rr =listModel.get(i);
-                    if (rr.getRequest().hashCode() == msg.getIntProperty("loanRequestId")){
+                    if (rr.getReply() == null){
                         rr.setReply(reply);
+                        break;
                     }
                 }
                 requestReplyList.repaint();
-
             } catch (JMSException e) {
                 e.printStackTrace();
             }
-
         });
 
 
