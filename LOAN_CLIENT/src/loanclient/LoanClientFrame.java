@@ -179,24 +179,19 @@ public class LoanClientFrame extends JFrame {
 	}
 
 	private static void subscribe(String senderChannel, String receiverChannel){
-		loanBrokerAppGateway = new LoanBrokerAppGateway(senderChannel, receiverChannel);
-		loanBrokerAppGateway.setMessageListener(msg -> {
-            String body = null;
-            try {
-                body = ((TextMessage)msg).getText();
-                LoanReply reply = new LoanSerializer().replyFromString(body);
-                for (int i = 0; i < listModel.getSize(); i++){
-                    RequestReply<LoanRequest,LoanReply> rr =listModel.get(i);
-                    if (rr.getReply() == null){
-                        rr.setReply(reply);
-                        break;
-                    }
-                }
-                requestReplyList.repaint();
-            } catch (JMSException e) {
-                e.printStackTrace();
-            }
-        });
+		loanBrokerAppGateway = new LoanBrokerAppGateway(senderChannel, receiverChannel){
+			@Override
+			public void onLoanReplyArrived(LoanRequest request, LoanReply reply) {
+				for (int i = 0; i < listModel.getSize(); i++){
+					RequestReply<LoanRequest,LoanReply> rr =listModel.get(i);
+					if (rr.getReply() == null){
+						rr.setReply(reply);
+						break;
+					}
+				}
+				requestReplyList.repaint();
+			}
+		};
 
 
 	}

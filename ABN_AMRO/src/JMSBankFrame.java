@@ -53,18 +53,12 @@ public class JMSBankFrame extends JFrame {
 	}
 
 	public static void subscribe(){
-		loanBrokerAppGateway = new LoanBrokerAppGateway("BankInterestReplies","BankInterestRequests");
-		loanBrokerAppGateway.setMessageListener(msg -> {
-			try {
-				String body = ((TextMessage)msg).getText();
-				BankInterestRequest request = new BankSerializer().requestFromString(body);
+		loanBrokerAppGateway = new LoanBrokerAppGateway("BankInterestReplies","BankInterestRequests"){
+			@Override
+			public void onBankRequestArrived(BankInterestRequest request, BankInterestReply reply) {
 				listModel.addElement(new RequestReply<>(request, null));
-
-			} catch (JMSException e) {
-				e.printStackTrace();
 			}
-
-		});
+		};
 	}
 
 	/**

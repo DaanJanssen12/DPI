@@ -50,44 +50,33 @@ public class LoanBrokerFrame extends JFrame {
 
 
 	private static void subscribe(){
-		loanClientAppGateway = new LoanClientAppGateway("LoanReplies", "LoanRequests");
-		bankAppGateway = new BankAppGateway("BankInterestRequests", "BankInterestReplies");
+		loanClientAppGateway = new LoanClientAppGateway("LoanReplies", "LoanRequests"){
+            @Override
+            public void onLoanRequestArrived(LoanRequest request, LoanReply reply) {
+                BankInterestRequest bankInterestRequest = new BankInterestRequest(request.getAmount(), request.getTime());
+                JListLine listLine = new JListLine(request);
+                listLine.setBankRequest(bankInterestRequest);
+                listModel.addElement(listLine);
 
-		loanClientAppGateway.setMessageListener(msg -> {
-			try {
-				String body = ((TextMessage)msg).getText();
-				LoanRequest request = new LoanSerializer().requestFromString(body);
-				BankInterestRequest interestRequest = new BankInterestRequest(request.getAmount(), request.getTime());
-				JListLine listLine = new JListLine(request);
-				listLine.setBankRequest(interestRequest);
-				listModel.addElement(listLine);
+                bankAppGateway.sendBankRequest(bankInterestRequest);
+            }
+        };
+		bankAppGateway = new BankAppGateway("BankInterestRequests", "BankInterestReplies"){
+            @Override
+            public void onBankReplyArrived(BankInterestRequest request, BankInterestReply reply) {
+                for (int i = 0; i < listModel.size(); i++) {
+                    JListLine listLine = listModel.get(i);
+                    if(listLine.getBankReply() == null){
+                        listLine.setBankReply(reply);
+                        LoanReply loanReply = new LoanReply(reply.getInterest(), reply.getQuoteId());
 
-				bankAppGateway.sendBankRequest(interestRequest);
-			}catch (Exception e){
-				e.printStackTrace();
-			}
-		});
-
-		bankAppGateway.setMessageListener(msg -> {
-			try {
-				String body = ((TextMessage)msg).getText();
-				BankInterestReply reply = new BankSerializer().replyFromString(body);
-
-				for (int i = 0; i < listModel.size(); i++) {
-					JListLine listLine = listModel.get(i);
-					if(listLine.getBankReply() == null){
-						listLine.setBankReply(reply);
-						LoanReply loanReply = new LoanReply(reply.getInterest(), reply.getQuoteId());
-
-						loanClientAppGateway.sendLoanReply(loanReply);
-						break;
-					}
-				}
-				list.repaint();
-			} catch (JMSException e) {
-				e.printStackTrace();
-			}
-		});
+                        loanClientAppGateway.sendLoanReply(loanReply);
+                        break;
+                    }
+                }
+                list.repaint();
+            }
+        };
 	}
 
 	/**
