@@ -126,8 +126,12 @@ public class LoanClientFrame extends JFrame {
 
             LoanRequest request = new LoanRequest(ssn,amount,time);
             listModel.addElement(new RequestReply<>(request, null));
-            loanBrokerAppGateway.applyForLoan(request);
-        });
+			try {
+				loanBrokerAppGateway.applyForLoan(request);
+			} catch (JMSException e) {
+				e.printStackTrace();
+			}
+		});
 		GridBagConstraints gbc_btnQueue = new GridBagConstraints();
 		gbc_btnQueue.insets = new Insets(0, 0, 5, 5);
 		gbc_btnQueue.gridx = 2;

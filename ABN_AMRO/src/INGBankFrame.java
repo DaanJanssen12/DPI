@@ -1,34 +1,17 @@
-import java.awt.EventQueue;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.util.Properties;
-
-import javax.jms.*;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.border.EmptyBorder;
-
-import Bank.BankSerializer;
 import Bank.LoanBrokerAppGateway;
 import mix.messaging.requestreply.RequestReply;
 import mix.model.bank.BankInterestReply;
 import mix.model.bank.BankInterestRequest;
-import org.apache.activemq.ActiveMQConnectionFactory;
 
-public class JMSBankFrame extends JFrame {
+import javax.jms.JMSException;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+
+public class INGBankFrame extends JFrame {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
@@ -43,7 +26,7 @@ public class JMSBankFrame extends JFrame {
 	public static void main(String[] args) {
 		EventQueue.invokeLater(() -> {
             try {
-                JMSBankFrame frame = new JMSBankFrame();
+                INGBankFrame frame = new INGBankFrame();
                 frame.setVisible(true);
                 subscribe();
             } catch (Exception e) {
@@ -53,7 +36,7 @@ public class JMSBankFrame extends JFrame {
 	}
 
 	public static void subscribe(){
-		loanBrokerAppGateway = new LoanBrokerAppGateway("BankInterestReplies","BankInterestRequests"){
+		loanBrokerAppGateway = new LoanBrokerAppGateway("BankInterestReplies","INGBankInterestRequests"){
 			@Override
 			public void onBankRequestArrived(BankInterestRequest request, BankInterestReply reply) {
 				listModel.addElement(new RequestReply<>(request, null));
@@ -64,8 +47,8 @@ public class JMSBankFrame extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public JMSBankFrame() {
-		setTitle("JMS Bank - ABN AMRO");
+	public INGBankFrame() {
+		setTitle("JMS Bank - ING");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
@@ -112,12 +95,15 @@ public class JMSBankFrame extends JFrame {
 		btnSendReply.addActionListener(e -> {
             RequestReply<BankInterestRequest, BankInterestReply> rr = list.getSelectedValue();
             double interest = Double.parseDouble((tfReply.getText()));
-            BankInterestReply reply = new BankInterestReply(interest,"ABN AMRO");
+            BankInterestReply reply = new BankInterestReply(interest,"ING");
             if (rr!= null && reply != null){
                 rr.setReply(reply);
                 list.repaint();
-                loanBrokerAppGateway.sendBankReply(reply);
-            }
+				try {
+					loanBrokerAppGateway.sendBankReply(reply, rr.getRequest().hashCode());
+				} catch (JMSException e1) {
+					e1.printStackTrace();
+				}            }
         });
 		GridBagConstraints gbc_btnSendReply = new GridBagConstraints();
 		gbc_btnSendReply.anchor = GridBagConstraints.NORTHWEST;

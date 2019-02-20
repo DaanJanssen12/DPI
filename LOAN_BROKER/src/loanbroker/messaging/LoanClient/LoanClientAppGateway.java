@@ -12,6 +12,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
+import java.util.List;
 
 public class LoanClientAppGateway {
     private MessageSenderGateway sender;
@@ -20,8 +21,8 @@ public class LoanClientAppGateway {
 
     public LoanClientAppGateway(String senderChannel, String receiverChannel) {
         serializer = new LoanSerializer();
-        receiver = new MessageReceiverGateway(senderChannel);
-        sender = new MessageSenderGateway(receiverChannel);
+        receiver = new MessageReceiverGateway(receiverChannel);
+        sender = new MessageSenderGateway(senderChannel);
         receiver.setListener(message -> {
             try {
                 String body = ((TextMessage)message).getText();
@@ -33,13 +34,14 @@ public class LoanClientAppGateway {
         });
     }
 
-    public void sendLoanReply(LoanReply reply){
+    public void sendLoanReply(LoanReply reply, int messageId) throws JMSException {
         Message message = sender.createTextMessage(serializer.replyToString(reply));
+        message.setIntProperty("messageId", messageId);
         sender.send(message);
     }
 
-    public void onLoanRequestArrived(LoanRequest request, LoanReply reply){
-        sendLoanReply(reply);
+    public void onLoanRequestArrived(LoanRequest request, LoanReply reply) throws JMSException {
+        sendLoanReply(reply, request.hashCode());
     }
 
     public void setMessageListener(MessageListener listener){

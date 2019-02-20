@@ -9,6 +9,8 @@ import mix.model.bank.BankInterestReply;
 import mix.model.bank.BankInterestRequest;
 import mix.model.loan.LoanReply;
 import mix.model.loan.LoanRequest;
+import net.sourceforge.jeval.EvaluationException;
+
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -58,10 +60,14 @@ public class LoanBrokerFrame extends JFrame {
                 listLine.setBankRequest(bankInterestRequest);
                 listModel.addElement(listLine);
 
-                bankAppGateway.sendBankRequest(bankInterestRequest);
-            }
+				try {
+					bankAppGateway.sendBankRequest(bankInterestRequest);
+				} catch (EvaluationException e) {
+					e.printStackTrace();
+				}
+			}
         };
-		bankAppGateway = new BankAppGateway("BankInterestRequests", "BankInterestReplies"){
+		bankAppGateway = new BankAppGateway("BankInterestReplies"){
             @Override
             public void onBankReplyArrived(BankInterestRequest request, BankInterestReply reply) {
                 for (int i = 0; i < listModel.size(); i++) {
@@ -70,13 +76,20 @@ public class LoanBrokerFrame extends JFrame {
                         listLine.setBankReply(reply);
                         LoanReply loanReply = new LoanReply(reply.getInterest(), reply.getQuoteId());
 
-                        loanClientAppGateway.sendLoanReply(loanReply);
-                        break;
+						try {
+							loanClientAppGateway.sendLoanReply(loanReply, listLine.getBankRequest().hashCode());
+						} catch (JMSException e) {
+							e.printStackTrace();
+						}
+						break;
                     }
                 }
                 list.repaint();
             }
         };
+		bankAppGateway.addRecipient("RaboBankInterestRequests", "#{amount} <= 250000 && #{time} <= 15");
+		bankAppGateway.addRecipient("ABNBankInterestRequests", "#{amount} >= 200000 && #{amount} <= 300000 && #{time} <= 20");
+		bankAppGateway.addRecipient("INGBankInterestRequests", "#{amount} <= 100000 && #{time} <= 10");
 	}
 
 	/**

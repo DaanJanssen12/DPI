@@ -17,8 +17,8 @@ public class LoanBrokerAppGateway {
 
     public LoanBrokerAppGateway(String senderChannel, String receiverChannel) {
         serializer = new LoanSerializer();
-        receiver = new MessageReceiverGateway(senderChannel);
-        sender = new MessageSenderGateway(receiverChannel);
+        receiver = new MessageReceiverGateway(receiverChannel);
+        sender = new MessageSenderGateway(senderChannel);
         receiver.setListener(msg -> {
             try {
                 String body = ((TextMessage)msg).getText();
