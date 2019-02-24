@@ -187,8 +187,8 @@ public class LoanClientFrame extends JFrame {
 			@Override
 			public void onLoanReplyArrived(LoanRequest request, LoanReply reply) {
 				for (int i = 0; i < listModel.getSize(); i++){
-					RequestReply<LoanRequest,LoanReply> rr =listModel.get(i);
-					if (rr.getReply() == null){
+					RequestReply<LoanRequest,LoanReply> rr = listModel.get(i);
+					if (rr.getReply() == null && rr.getRequest() == request){
 						rr.setReply(reply);
 						break;
 					}

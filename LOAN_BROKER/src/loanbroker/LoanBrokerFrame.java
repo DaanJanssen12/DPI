@@ -72,12 +72,12 @@ public class LoanBrokerFrame extends JFrame {
             public void onBankReplyArrived(BankInterestRequest request, BankInterestReply reply) {
                 for (int i = 0; i < listModel.size(); i++) {
                     JListLine listLine = listModel.get(i);
-                    if(listLine.getBankReply() == null){
+                    if(listLine.getBankReply() == null && listLine.getBankRequest() == request){
                         listLine.setBankReply(reply);
                         LoanReply loanReply = new LoanReply(reply.getInterest(), reply.getQuoteId());
 
 						try {
-							loanClientAppGateway.sendLoanReply(loanReply, listLine.getBankRequest().hashCode());
+							loanClientAppGateway.sendLoanReply(loanReply, request.hashCode());
 						} catch (JMSException e) {
 							e.printStackTrace();
 						}

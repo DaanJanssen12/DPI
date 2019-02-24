@@ -37,15 +37,12 @@ public class BankAppGateway {
                 String body = ((TextMessage)message).getText();
                 BankInterestReply reply = new BankSerializer().replyFromString(body);
                 int messageId = message.getIntProperty("messageId");
-                System.out.println("MessageId: "+messageId);
-                System.out.println("Aggregators: "+aggregators.size()+", FirstAggregatorId: "+aggregators.get(0).getAggregatorId());
                 if(aggregators.stream().anyMatch(f -> f.getAggregatorId() == messageId)){
-                    System.out.println("In aggregator");
                     BankInterestReplyAggregator aggregator = aggregators.stream().filter(f -> f.getAggregatorId() == messageId).findFirst().get();
                     BankInterestReply replyToSend = aggregator.processReceivedMessage(reply);
                     if(replyToSend != null) {
                         aggregators.remove(aggregator);
-                        onBankReplyArrived(null, reply);
+                        onBankReplyArrived(aggregator.getInterestRequest(), reply);
                     }
                 }else{
                     onBankReplyArrived(null, reply);
@@ -80,7 +77,7 @@ public class BankAppGateway {
                 }
             }
             System.out.println("Amount of messages: "+requests);
-            if(requests != 0) aggregators.add(new BankInterestReplyAggregator(request.hashCode(), requests));
+            if(requests != 0) aggregators.add(new BankInterestReplyAggregator(request, requests));
         }
     }
 

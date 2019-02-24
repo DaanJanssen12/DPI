@@ -15,8 +15,8 @@
       <file leaf-file-name="LoanClientFrame.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/loanclient/LoanClientFrame.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-557">
-              <caret line="131" column="36" lean-forward="false" selection-start-line="131" selection-start-column="36" selection-end-line="131" selection-end-column="36" />
+            <state relative-caret-position="155">
+              <caret line="188" column="62" lean-forward="true" selection-start-line="188" selection-start-column="62" selection-end-line="188" selection-end-column="62" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -39,12 +39,25 @@
       <file leaf-file-name="LoanBrokerAppGateway.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/loanclient/messaging/LoanBrokerAppGateway.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="236">
-              <caret line="20" column="55" lean-forward="false" selection-start-line="20" selection-start-column="55" selection-end-line="20" selection-end-column="55" />
+            <state relative-caret-position="275">
+              <caret line="35" column="17" lean-forward="true" selection-start-line="35" selection-start-column="17" selection-end-line="35" selection-end-column="17" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#1411#1412#0" expanded="true" />
-                <element signature="e#1462#1463#0" expanded="true" />
+                <element signature="e#1959#1960#0" expanded="true" />
+                <element signature="e#2010#2011#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="BankInterestRequest.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/mix/model/bank/BankInterestRequest.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="309">
+              <caret line="49" column="5" lean-forward="false" selection-start-line="49" selection-start-column="5" selection-end-line="49" selection-end-column="5" />
+              <folding>
+                <element signature="e#933#934#0" expanded="true" />
+                <element signature="e#983#984#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -116,8 +129,9 @@
         <option value="$PROJECT_DIR$/src/loanclient/messaging/LoanSerializer.java" />
         <option value="$PROJECT_DIR$/src/loanclient/messaging/MessageReceiverGateway.java" />
         <option value="$PROJECT_DIR$/src/loanclient/messaging/MessageSenderGateway.java" />
-        <option value="$PROJECT_DIR$/src/loanclient/messaging/LoanBrokerAppGateway.java" />
         <option value="$PROJECT_DIR$/src/loanclient/LoanClientFrame.java" />
+        <option value="$PROJECT_DIR$/src/mix/model/bank/BankInterestRequest.java" />
+        <option value="$PROJECT_DIR$/src/loanclient/messaging/LoanBrokerAppGateway.java" />
       </list>
     </option>
   </component>
@@ -194,6 +208,14 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="mix" type="462c0819:PsiDirectoryNode" />
               <item name="model" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="LOAN_CLIENT" type="b2602c69:ProjectViewProjectNode" />
+              <item name="LOAN_CLIENT" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="mix" type="462c0819:PsiDirectoryNode" />
+              <item name="model" type="462c0819:PsiDirectoryNode" />
+              <item name="bank" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="LOAN_CLIENT" type="b2602c69:ProjectViewProjectNode" />
@@ -358,12 +380,12 @@
       <workItem from="1549642511145" duration="9622000" />
       <workItem from="1550043816056" duration="8960000" />
       <workItem from="1550397572647" duration="1988000" />
-      <workItem from="1550650322468" duration="4117000" />
+      <workItem from="1550650322468" duration="7060000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="27227000" />
+    <option name="totallyTimeSpent" value="30170000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
@@ -502,8 +524,8 @@
           <caret line="34" column="36" lean-forward="false" selection-start-line="34" selection-start-column="36" selection-end-line="34" selection-end-column="36" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#1411#1412#0" expanded="true" />
-            <element signature="e#1462#1463#0" expanded="true" />
+            <element signature="e#1959#1960#0" expanded="true" />
+            <element signature="e#2010#2011#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -534,8 +556,8 @@
           <caret line="21" column="44" lean-forward="false" selection-start-line="21" selection-start-column="44" selection-end-line="21" selection-end-column="44" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#1411#1412#0" expanded="true" />
-            <element signature="e#1462#1463#0" expanded="true" />
+            <element signature="e#1959#1960#0" expanded="true" />
+            <element signature="e#2010#2011#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -713,18 +735,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/loanclient/messaging/LoanBrokerAppGateway.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
-          <caret line="20" column="55" lean-forward="false" selection-start-line="20" selection-start-column="55" selection-end-line="20" selection-end-column="55" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#1411#1412#0" expanded="true" />
-            <element signature="e#1462#1463#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/loanclient/messaging/MessageSenderGateway.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="548">
@@ -735,10 +745,33 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/mix/model/bank/BankInterestRequest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="309">
+          <caret line="49" column="5" lean-forward="false" selection-start-line="49" selection-start-column="5" selection-end-line="49" selection-end-column="5" />
+          <folding>
+            <element signature="e#933#934#0" expanded="true" />
+            <element signature="e#983#984#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/loanclient/messaging/LoanBrokerAppGateway.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="275">
+          <caret line="35" column="17" lean-forward="true" selection-start-line="35" selection-start-column="17" selection-end-line="35" selection-end-column="17" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#1959#1960#0" expanded="true" />
+            <element signature="e#2010#2011#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/loanclient/LoanClientFrame.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-557">
-          <caret line="131" column="36" lean-forward="false" selection-start-line="131" selection-start-column="36" selection-end-line="131" selection-end-column="36" />
+        <state relative-caret-position="155">
+          <caret line="188" column="62" lean-forward="true" selection-start-line="188" selection-start-column="62" selection-end-line="188" selection-end-column="62" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

@@ -43,4 +43,9 @@ public class BankInterestRequest {
     public String toString() {
         return " amount=" + amount + " time=" + time;
     }
+
+    @Override
+    public int hashCode() {
+        return (amount+""+time).hashCode();
+    }
 }

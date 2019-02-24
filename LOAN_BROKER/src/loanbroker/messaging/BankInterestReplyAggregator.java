@@ -1,8 +1,7 @@
 package loanbroker.messaging;
 
 import mix.model.bank.BankInterestReply;
-
-import java.util.UUID;
+import mix.model.bank.BankInterestRequest;
 
 public class BankInterestReplyAggregator {
 
@@ -11,10 +10,12 @@ public class BankInterestReplyAggregator {
     private int repliesReceived = 0;
 
     private BankInterestReply message;
+    private BankInterestRequest interestRequest;
 
-    public BankInterestReplyAggregator(int aggregatorId, int expectedReplies) {
+    public BankInterestReplyAggregator(BankInterestRequest interestRequest, int expectedReplies) {
         this.expectedReplies = expectedReplies;
-        this.aggregatorId = aggregatorId;
+        this.aggregatorId = interestRequest.hashCode();
+        this.interestRequest = interestRequest;
         System.out.println("created aggregator: id = "+aggregatorId);
     }
 
@@ -35,4 +36,8 @@ public class BankInterestReplyAggregator {
     }
 
     public int getAggregatorId(){return aggregatorId;}
+
+    public BankInterestRequest getInterestRequest() {
+        return interestRequest;
+    }
 }
